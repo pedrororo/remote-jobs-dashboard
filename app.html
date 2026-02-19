@@ -20,15 +20,6 @@
   <meta name="twitter:description" content="Searchable roles aggregated from multiple job platforms worldwide.">
   <meta name="twitter:image" content="https://pedrororo.github.io/remote-jobs-index/preview.png">
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-67RCVE3KLG"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-67RCVE3KLG', { anonymize_ip: true });
-  </script>
-
   <style>
     :root {
       --primary-color: #3b82f6;
@@ -285,7 +276,7 @@
         Curated by <a href="https://www.linkedin.com/in/pedro-andre-arroyo-silva/" target="_blank">Pedro Arroyo</a>
         <span class="sr-only"> (opens in new tab)</span>
         <br>
-        <small>Generated: 2026-02-18</small>
+        <small>Generated: 2026-02-19</small>
       </p>
     </div>
   </div>
@@ -558,6 +549,14 @@
     populateList();
   }
 
+    function norm(s) {
+      return (s || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
   function showPostedDetails(postedElement, postedData) {
     const existing = document.querySelector('.posted-expanded.show');
     if (existing) existing.remove();
@@ -585,13 +584,27 @@
     }, 10);
   }
 
+    function parseQuery(input) {
+      const s = (input || "").trim().toLowerCase();
+      const phrases = [...s.matchAll(/"([^"]+)"/g)].map(m => m[1]);
+      const leftover = s.replace(/"[^"]+"/g, " ");
+      const words = leftover.split(/\s+/).filter(Boolean);
+      return { phrases, words };
+    }
+
+
+
   function filterJobs() {
     const titleInput = (document.getElementById('titleInput')?.value || '').toLowerCase().trim();
-    const titleKeywords = titleInput ? titleInput.split(/\s+/).filter(w => w) : [];
+    const q = norm(document.getElementById('titleInput')?.value || "");
+    const titleKeywords = q ? q.split(" ") : [];
 
     filteredJobs = JOBS.filter(job => {
-      const title = (job.title || '').toLowerCase();
-      const matchesTitle = titleKeywords.length === 0 || titleKeywords.some(kw => title.includes(kw));
+      const { phrases, words } = parseQuery(document.getElementById('titleInput')?.value || "");
+      const title = norm(job.title || "");
+      const matchesTitle =
+          (phrases.length === 0 || phrases.every(p => title.includes(norm(p)))) &&
+          (words.length === 0 || words.every(w => title.includes(norm(w))));
 
       const matchesCompany = selected.company.size === 0 || selected.company.has(job.company);
 
